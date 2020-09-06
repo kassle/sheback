@@ -24,6 +24,10 @@ function verifyProfile() {
         retval=3
     elif [ -z "${FILES}" ]; then
         retval=4
+    elif [ -n "${MYSQLDBS}" ]; then
+        if [ "root" != "${USER}" ]; then
+            retval=5
+        fi
     fi
 
     unset NAME DESTDIR FILES
@@ -50,8 +54,18 @@ function processBackup() {
     BACKUPFILE="${BACKUPDIR}/files.tar.gz"
     tar zcfU ${BACKUPFILE} --directory=/ ${FILES[*]} > /dev/null 2>&1
 
+    echo "    - backup databases"
+    for ITEM in "${MYSQLDBS[@]}"; do
+        echo "        - ${ITEM}"
+        DBFILE="${BACKUPDIR}/${ITEM}.sql"
+        mysqldump --add-drop-database --add-drop-table --add-drop-trigger --tz-utc --databases ${ITEM} > ${DBFILE}
+    done
+
+    echo "    - copy profile"
+    cp ${1} "${BACKUPDIR}/profile"
+    
     echo "    - clean up"
-    unset NAME DESTDIR FILES TIMESTAMP BACKUPNAME BACKUPDIR BACKUPFILE
+    unset NAME DESTDIR FILES TIMESTAMP BACKUPNAME BACKUPDIR BACKUPFILE ITEM DBFILE MYSQLDBS
 
     echo "    - done"
     exit 0
@@ -95,13 +109,21 @@ function processRestore() {
 
     BACKUPFILE="${BACKUPDIR}/files.tar.gz"
     if [ -f ${BACKUPFILE} ]; then
-        echo " "
         echo "    - restore files"
         tar xf ${BACKUPFILE} --directory=/
     fi
 
+    if [ -n ${MYSQLDBS} ]; then
+        echo "    - restore database"
+        for ITEM in "${MYSQLDBS[@]}"; do
+            echo "        - ${ITEM}"
+            DBFILE="${BACKUPDIR}/${ITEM}.sql"
+            mysql < ${DBFILE}
+        done
+    fi
+
     echo "    - clean up"
-    unset NAME DESTDIR FILES TIMESTAMP BACKUPNAME BACKUPDIR BACKUPFILE
+    unset NAME DESTDIR FILES TIMESTAMP BACKUPNAME BACKUPDIR BACKUPFILE ITEM MYSQLDBS DBFILE
 
     echo "    - done"
     exit 0

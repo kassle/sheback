@@ -65,7 +65,7 @@ function processBackup() {
     echo "    - backup databases"
     for ITEM in "${MYSQLDBS[@]}"; do
         echo "        - ${ITEM}"
-        DBFILE="${BACKUPDIR}/${ITEM}.sql.gz"
+        DBFILE="${BACKUPDIR}/my_${ITEM}.sql.gz"
         mysqldump --add-drop-database --add-drop-table --add-drop-trigger --tz-utc --databases ${ITEM} | gzip -9 > ${DBFILE}
     done
 
@@ -130,7 +130,7 @@ function processRestore() {
         echo "    - restore database"
         for ITEM in "${MYSQLDBS[@]}"; do
             echo "        - ${ITEM}"
-            DBFILE="${BACKUPDIR}/${ITEM}.sql.gz"
+            DBFILE="${BACKUPDIR}/my_${ITEM}.sql.gz"
             gzip -d < ${DBFILE} | mysql
         done
     fi

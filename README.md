@@ -17,8 +17,9 @@ MYSQLDBS=(
     'mysql'
     'krybrig'
 )
-POSTBACKUP_SCRIPT=/usr/libexec/dorsync
+POSTBACKUP_SCRIPT=/usr/libexec/sheback_keeper
 POSTRESTORE_SCRIPT=/usr/libexec/sendemail
+KEEP_BACKUP_NUM=3
 ```
 
 Required:
@@ -32,6 +33,7 @@ Optional:
 - MYSQLDBS
 - POSTBACKUP_SCRIPT
 - POSTRESTORE_SCRIPT
+- KEEP_BACKUP_NUM = used by `sheback_keeper` post-backup script to remove old backup copies
 
 Notes MYSQLDBS:
 

@@ -1,0 +1,55 @@
+#! /usr/bin/env bash
+
+function usage() {
+    echo "Should be run as sheback post-backup script"
+    exit 1
+}
+
+function verify() {
+    . ${1}/profile
+
+    if [ -n ${KEEP_BACKUP_NUM} ]; then
+        if [[ ${KEEP_BACKUP_NUM} > 0 ]]; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+function process() {
+    . ${1}/profile
+
+    CURRENTDIR=`pwd`
+    PARENTDIR=`dirname ${1}`
+
+    let KEEP=$KEEP_BACKUP_NUM+1
+    cd ${PARENTDIR}
+    RM_LIST=`ls -r | tail -n +$KEEP`
+    for RM in $RM_LIST; do
+        if [ -d "$RM" ]; then
+            echo "        - remove old backup: ${RM}"
+            rm -rf $RM
+        fi
+    done
+
+    cd ${CURRENTDIR}
+
+    unset PARENTDIR KEEP_BACKUP_NUM
+}
+
+function main() {
+    if [ -z ${2} ]; then
+        usage
+    else
+        verify ${2}
+        retval=$?
+        if [[ $retval > 0 ]]; then
+            echo "      - sheback_keeper not run, please check backup profile"
+        else
+            process ${2}
+        fi
+    fi
+}
+
+main $@

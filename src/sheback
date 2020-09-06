@@ -28,6 +28,14 @@ function verifyProfile() {
         if [ "root" != "${USER}" ]; then
             retval=5
         fi
+    elif [ -n "${POSTBACKUP_SCRIPT}" ]; then
+        if [ ! -f "${POSTBACKUP_SCRIPT}" ]; then
+            retval=6
+        fi
+    elif [ -n "${POSTRESTORE_SCRIPT}" ]; then
+        if [ ! -f "${POSTRESTORE_SCRIPT}" ]; then
+            retval=7
+        fi
     fi
 
     unset NAME DESTDIR FILES
@@ -64,6 +72,11 @@ function processBackup() {
     echo "    - copy profile"
     cp ${1} "${BACKUPDIR}/profile"
     
+    if [ -n "${POSTBACKUP_SCRIPT}" ]; then
+        echo "    - running post backup script"
+        exec ${POSTBACKUP_SCRIPT} ${BACKUPNAME} ${BACKUPDIR}
+    fi
+
     echo "    - clean up"
     unset NAME DESTDIR FILES TIMESTAMP BACKUPNAME BACKUPDIR BACKUPFILE ITEM DBFILE MYSQLDBS
 
@@ -120,6 +133,11 @@ function processRestore() {
             DBFILE="${BACKUPDIR}/${ITEM}.sql"
             mysql < ${DBFILE}
         done
+    fi
+
+    if [ -n "${POSTRESTORE_SCRIPT}" ]; then
+        echo "    - running post backup script"
+        exec ${POSTRESTORE_SCRIPT} ${BACKUPNAME} ${BACKUPDIR}
     fi
 
     echo "    - clean up"

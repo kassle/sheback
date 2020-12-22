@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+/usr/libexec/sheback/sheback_keeper $@
+/usr/libexec/sheback/sheback_rsync $@

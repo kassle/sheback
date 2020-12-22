@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+CURDIR=`pwd`
+PARENTDIR=`dirname ${1}`
+cd $PARENTDIR
+
+rsync -rqltP --password-file=/home/user/.rsync-secret ${2} rsync://user@rsync.example.net/name
+
+cd $CURDIR
+unset CURDIR PARENTDIR
